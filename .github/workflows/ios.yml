@@ -1,0 +1,66 @@
+name: MediStock CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: ${{ matrix.target }}
+    runs-on: xcode-27
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - MediStockTests
+          - MediStockUITests
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore Firebase config
+        env:
+          FIREBASE_CONFIG: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        run: |
+          if [ -z "$FIREBASE_CONFIG" ]; then
+            echo "Firebase secret missing"
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_CONFIG" | base64 -D > MediStock/GoogleService-Info.plist
+          plutil -lint MediStock/GoogleService-Info.plist
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project MediStock.xcodeproj \
+            -scheme MediStock \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0' \
+            -parallel-testing-enabled NO \
+            -enableCodeCoverage YES \
+            "-only-testing:${{ matrix.target }}" \
+            -resultBundlePath "$RUNNER_TEMP/${{ matrix.target }}.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Coverage report
+        if: always()
+        run: |
+          RESULT="$RUNNER_TEMP/${{ matrix.target }}.xcresult"
+          if [ -d "$RESULT" ]; then
+            xcrun xccov view --report "$RESULT"
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.target }}
+          path: ${{ runner.temp }}/${{ matrix.target }}.xcresult
+          retention-days: 7
