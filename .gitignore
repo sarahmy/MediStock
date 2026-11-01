@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+.AppleDouble
+__MACOSX/
+
+# Xcode
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Rapports de tests
+*.xcresult
+*.profdata
+*.gcda
+*.gcno
+
+# Firebase
+GoogleService-Info.plist
+google-services.json
+
+# Fichiers confidentiels
+.env
+.env.*
+!.env.example
+Secrets.xcconfig
+*.p8
+*.p12
+*.mobileprovision
+*service-account*.json
+
+# Fichiers temporaires
+*.swp
+*.tmp
+*~
