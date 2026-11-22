@@ -18,7 +18,6 @@
 		65A1FA1A309144ED00EB8832 /* MediStockTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FA19309144ED00EB8832 /* MediStockTheme.swift */; };
 		65A1FA7C3097195200EB8832 /* MediStockNewFeaturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FA7B3097195200EB8832 /* MediStockNewFeaturesTests.swift */; };
 		65A1FA7F3097201D00EB8832 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA7E3097201D00EB8832 /* FirebaseAnalyticsCore */; };
-		65A1FA813097201D00EB8832 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA803097201D00EB8832 /* FirebaseAppCheck */; };
 		65A1FA833097201D00EB8832 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA823097201D00EB8832 /* FirebaseAuth */; };
 		65A1FA853097201D00EB8832 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA843097201D00EB8832 /* FirebaseAuthCombine-Community */; };
 		65A1FA873097201D00EB8832 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA863097201D00EB8832 /* FirebaseCrashlytics */; };
@@ -60,7 +59,7 @@
 		65A1FA19309144ED00EB8832 /* MediStockTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockTheme.swift; sourceTree = "<group>"; };
 		65A1FA7B3097195200EB8832 /* MediStockNewFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockNewFeaturesTests.swift; sourceTree = "<group>"; };
 		65A1FA8E3097251000EB8832 /* MediStockCoverageSupplementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockCoverageSupplementTests.swift; sourceTree = "<group>"; };
-		65A1FAAE309744FE00EB8832 /* MediStock.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = file; path = MediStock.xctestplan; sourceTree = "<group>"; };
+		65A1FAAE309744FE00EB8832 /* MediStock.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediStock.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -76,7 +75,6 @@
 			files = (
 				65A1FA893097201D00EB8832 /* FirebaseDatabase in Frameworks */,
 				65A1FA8D3097201D00EB8832 /* FirebaseFirestoreCombine-Community in Frameworks */,
-				65A1FA813097201D00EB8832 /* FirebaseAppCheck in Frameworks */,
 				65A1FA833097201D00EB8832 /* FirebaseAuth in Frameworks */,
 				65A1FA873097201D00EB8832 /* FirebaseCrashlytics in Frameworks */,
 				65A1FA7F3097201D00EB8832 /* FirebaseAnalyticsCore in Frameworks */,
@@ -197,7 +195,6 @@
 			name = MediStock;
 			packageProductDependencies = (
 				65A1FA7E3097201D00EB8832 /* FirebaseAnalyticsCore */,
-				65A1FA803097201D00EB8832 /* FirebaseAppCheck */,
 				65A1FA823097201D00EB8832 /* FirebaseAuth */,
 				65A1FA843097201D00EB8832 /* FirebaseAuthCombine-Community */,
 				65A1FA863097201D00EB8832 /* FirebaseCrashlytics */,
@@ -670,11 +667,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 65A1FA7D3097201D00EB8832 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsCore;
-		};
-		65A1FA803097201D00EB8832 /* FirebaseAppCheck */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 65A1FA7D3097201D00EB8832 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAppCheck;
 		};
 		65A1FA823097201D00EB8832 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
