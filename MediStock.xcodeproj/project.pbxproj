@@ -27,6 +27,8 @@
 		65A1FA8F3097251000EB8832 /* MediStockCoverageSupplementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FA8E3097251000EB8832 /* MediStockCoverageSupplementTests.swift */; };
 		65A1FB0A30B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FB0930B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift */; };
 		65A1FB0C30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FB0B30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift */; };
+		65A1FB8730B5075800EB8832 /* InventoryRepository+Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FB8630B5075800EB8832 /* InventoryRepository+Rename.swift */; };
+		65A1FB8830B5075800EB8832 /* FirestoreInventoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FB8530B5075800EB8832 /* FirestoreInventoryRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +66,8 @@
 		65A1FAAE309744FE00EB8832 /* MediStock.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediStock.xctestplan; sourceTree = "<group>"; };
 		65A1FB0930B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockHistoryViewModelTests.swift; sourceTree = "<group>"; };
 		65A1FB0B30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockSessionStoreSafetyTests.swift; sourceTree = "<group>"; };
+		65A1FB8530B5075800EB8832 /* FirestoreInventoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreInventoryRepository.swift; sourceTree = "<group>"; };
+		65A1FB8630B5075800EB8832 /* InventoryRepository+Rename.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InventoryRepository+Rename.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -129,6 +133,8 @@
 		53E0D8952C06084700DE1134 /* MediStock */ = {
 			isa = PBXGroup;
 			children = (
+				65A1FB8530B5075800EB8832 /* FirestoreInventoryRepository.swift */,
+				65A1FB8630B5075800EB8832 /* InventoryRepository+Rename.swift */,
 				65A1F9FE308E732B00EB8832 /* GoogleService-Info.plist */,
 				65A1FA02308E9E2400EB8832 /* View */,
 				65A1FA01308E9E1600EB8832 /* ViewModel */,
@@ -326,6 +332,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65A1FB8730B5075800EB8832 /* InventoryRepository+Rename.swift in Sources */,
+				65A1FB8830B5075800EB8832 /* FirestoreInventoryRepository.swift in Sources */,
 				53E0D8972C06084700DE1134 /* MediStockApp.swift in Sources */,
 				65A1FA16309136AD00EB8832 /* InventoryRepository.swift in Sources */,
 				65A1FA1A309144ED00EB8832 /* MediStockTheme.swift in Sources */,
