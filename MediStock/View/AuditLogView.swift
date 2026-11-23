@@ -11,93 +11,15 @@ import SwiftUI
 @MainActor
 struct AuditLogView: View {
 
-    private struct MedicineChoice: Identifiable {
-        let id: String
-        let name: String
-    }
-
     @StateObject private var viewModel = HistoryViewModel()
     @StateObject private var choicesModel = HistoryViewModel()
-    @StateObject private var authorsModel = HistoryAuthorsViewModel()
+    @StateObject private var filterModel = AuditLogFilterViewModel()
 
-    @State private var userEmail = ""
-    @State private var medicineID = ""
-    @State private var selectedMedicineName = ""
-    @State private var aisle = ""
-    @State private var selectedDay: Date?
+    @State private var dayToChoose = Date()
+    @State private var showingDatePicker = false
 
-    @State private var sort: HistorySort = .newest
-    @State private var filtersExpanded = false
-
-    // MARK: - Utilisateurs
-
-    private var users: [String] {
-        let values = authorsModel.emails
-            + (userEmail.isEmpty ? [] : [userEmail])
-
-        return Array(Set(values)).sorted {
-            $0.localizedStandardCompare($1) == .orderedAscending
-        }
-    }
-
-    // MARK: - Médicaments
-
-    private var medicines: [MedicineChoice] {
-        var seen = Set<String>()
-        var result: [MedicineChoice] = []
-
-        for entry in choicesModel.items {
-            if seen.insert(entry.medicineId).inserted {
-                result.append(
-                    MedicineChoice(
-                        id: entry.medicineId,
-                        name: entry.after.name
-                    )
-                )
-            }
-        }
-
-        if !medicineID.isEmpty,
-           !seen.contains(medicineID) {
-
-            result.append(
-                MedicineChoice(
-                    id: medicineID,
-                    name: selectedMedicineName.isEmpty
-                        ? medicineID
-                        : selectedMedicineName
-                )
-            )
-        }
-
-        return result.sorted {
-            $0.name.localizedStandardCompare($1.name)
-                == .orderedAscending
-        }
-    }
-
-    // MARK: - Rayons
-
-    private var aisles: [String] {
-        let values = choicesModel.items.map(\.after.aisle)
-            + (aisle.isEmpty ? [] : [aisle])
-
-        return Array(Set(values)).sorted {
-            $0.localizedStandardCompare($1) == .orderedAscending
-        }
-    }
-
-    // MARK: - Jours
-
-    private var days: [Date] {
-        let loaded = choicesModel.items.map {
-            Calendar.current.startOfDay(for: $0.timestamp)
-        }
-
-        let values = loaded
-            + (selectedDay.map { [$0] } ?? [])
-
-        return Array(Set(values)).sorted(by: >)
+    private var medicines: [AuditLogFilterViewModel.MedicineChoice] {
+        filterModel.medicines(from: choicesModel.items)
     }
 
     // MARK: - Interface
@@ -105,257 +27,397 @@ struct AuditLogView: View {
     var body: some View {
         NavigationStack {
             List {
+
+                // MARK: - Filtres
+
                 Section {
-                    DisclosureGroup(
-                        "Filtres et tri",
-                        isExpanded: $filtersExpanded
-                    ) {
-                        VStack(
-                            alignment: .leading,
-                            spacing: 14
-                        ) {
-
-                            // Tri des dates
-
-                            Picker(
-                                "Ordre chronologique",
-                                selection: $sort
-                            ) {
-                                ForEach(
-                                    HistorySort.allCases
-                                ) { option in
-                                    Text(option.rawValue)
-                                        .tag(option)
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            // Filtre par utilisateur
-
-                            Picker(
-                                "Utilisateur",
-                                selection: $userEmail
-                            ) {
-                                Text("Tous les utilisateurs")
-                                    .tag("")
-
-                                ForEach(
-                                    users,
-                                    id: \.self
-                                ) { email in
-                                    Text(email)
-                                        .tag(email)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .disabled(
-                                authorsModel.isLoading
-                                || !authorsModel.hasLoaded
+                    VStack(spacing: 14) {
+                        HStack(spacing: 4) {
+                            modeButton(
+                                "Par date",
+                                icon: "calendar",
+                                value: .date
                             )
 
-                            if authorsModel.isLoading {
-                                ProgressView(
-                                    "Recherche de tous les auteurs…"
-                                )
-                            }
-
-                            if let error = authorsModel.errorMessage {
-                                ErrorBanner(message: error)
-
-                                Button(
-                                    "Réessayer de charger les utilisateurs"
-                                ) {
-                                    Task {
-                                        await authorsModel.reload()
-                                    }
-                                }
-                            }
-
-                            // Filtre par médicament
-
-                            Picker(
-                                "Médicament",
-                                selection: $medicineID
-                            ) {
-                                Text("Tous les médicaments")
-                                    .tag("")
-
-                                ForEach(medicines) { medicine in
-                                    Text(medicine.name)
-                                        .tag(medicine.id)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .onChange(of: medicineID) { _, newID in
-                                selectedMedicineName = medicines.first {
-                                    $0.id == newID
-                                }?.name ?? ""
-                            }
-
-                            // Filtre par rayon
-
-                            Picker(
-                                "Rayon",
-                                selection: $aisle
-                            ) {
-                                Text("Tous les rayons")
-                                    .tag("")
-
-                                ForEach(
-                                    aisles,
-                                    id: \.self
-                                ) { name in
-                                    Text(name)
-                                        .tag(name)
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            // Filtre par jour
-
-                            Picker(
-                                "Jour",
-                                selection: $selectedDay
-                            ) {
-                                Text("Tous les jours")
-                                    .tag(Optional<Date>.none)
-
-                                ForEach(
-                                    days,
-                                    id: \.self
-                                ) { day in
-                                    Text(
-                                        day.formatted(
-                                            date: .abbreviated,
-                                            time: .omitted
-                                        )
-                                    )
-                                    .tag(Optional(day))
-                                }
-                            }
-                            .pickerStyle(.menu)
-
-                            // Chargement des choix
-
-                            if choicesModel.isLoading {
-                                ProgressView("Chargement des choix…")
-                            }
-
-                            if let error = choicesModel.errorMessage {
-                                ErrorBanner(message: error)
-
-                                Button("Réessayer de charger les choix") {
-                                    Task {
-                                        await choicesModel.reload()
-                                    }
-                                }
-                            }
-
-                            if choicesModel.hasMore
-                                && !choicesModel.isLoading {
-
-                                Button("Charger d’autres choix") {
-                                    Task {
-                                        await choicesModel.loadMore()
-                                    }
-                                }
-                            }
-
-                            Text(
-                                "Les auteurs sont recherchés dans tout "
-                                + "l’historique. Les médicaments, rayons "
-                                + "et jours sont proposés progressivement, "
-                                + "par pages de 30 opérations. Les filtres "
-                                + "s’appliquent ensuite dans Firestore."
+                            modeButton(
+                                "Par médicament",
+                                icon: "pills",
+                                value: .medicine
                             )
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(
-                                horizontal: false,
-                                vertical: true
-                            )
-
-                            // Appliquer
-
-                            Button("Appliquer les filtres") {
-                                applyFilters()
-                            }
-                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier(
-                                "history.applyFilters"
-                            )
-
-                            // Réinitialiser
-
-                            Button("Réinitialiser les filtres") {
-                                userEmail = ""
-                                medicineID = ""
-                                selectedMedicineName = ""
-                                aisle = ""
-                                selectedDay = nil
-                                sort = .newest
-
-                                applyFilters()
-                            }
-                            .accessibilityIdentifier(
-                                "history.resetFilters"
+                                "Filtres et tri"
                             )
                         }
-                        .padding(.vertical, 8)
+                        .padding(4)
+                        .background(
+                            MediStockTheme.primary.opacity(0.09),
+                            in: RoundedRectangle(cornerRadius: 15)
+                        )
+
+                        if filterModel.mode == .date {
+                            dateFilter
+                        } else {
+                            medicineFilter
+                        }
                     }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(
+                        EdgeInsets(
+                            top: 12,
+                            leading: 16,
+                            bottom: 8,
+                            trailing: 16
+                        )
+                    )
                 }
 
-                Section("Opérations") {
-                    HistoryContent(viewModel: viewModel)
+                // MARK: - Opérations
+
+                Section {
+                    HistoryContent(
+                        viewModel: viewModel,
+                        cardStyle: true
+                    )
+                } header: {
+                    HStack(spacing: 8) {
+                        Text("Opérations")
+
+                        Spacer(minLength: 8)
+
+                        Menu {
+                            ForEach(HistorySort.allCases) { option in
+                                Button {
+                                    guard filterModel.sort != option else {
+                                        return
+                                    }
+
+                                    filterModel.selectSort(option)
+                                    applyFilter()
+
+                                } label: {
+                                    if filterModel.sort == option {
+                                        Label(
+                                            option.rawValue,
+                                            systemImage: "checkmark"
+                                        )
+                                    } else {
+                                        Text(option.rawValue)
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(
+                                    systemName: "arrow.up.arrow.down"
+                                )
+
+                                Text(filterModel.sort.rawValue)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+
+                                Image(systemName: "chevron.down")
+                                    .font(.caption2)
+                            }
+                            .font(.caption)
+                            .foregroundStyle(
+                                MediStockTheme.primary
+                            )
+                        }
+                        .accessibilityIdentifier(
+                            "history.sortOrder"
+                        )
+                    }
+                    .textCase(nil)
                 }
             }
             .mediStockScreen()
             .navigationTitle("Historique")
-            .onChange(of: filtersExpanded) { _, expanded in
-                if expanded {
-                    if !authorsModel.hasLoaded
-                        && !authorsModel.isLoading {
-
-                        Task {
-                            await authorsModel.reload()
-                        }
-                    }
-
-                    if choicesModel.items.isEmpty
-                        && !choicesModel.isLoading {
-
-                        Task {
-                            await choicesModel.reload()
-                        }
-                    }
-                }
+            .sheet(isPresented: $showingDatePicker) {
+                datePickerSheet
             }
             .task {
                 await viewModel.reload()
             }
+            .task {
+                await choicesModel.reload()
+            }
             .refreshable {
                 await viewModel.reload()
-
-                if filtersExpanded {
-                    await authorsModel.reload()
-                    await choicesModel.reload()
-                }
+                await choicesModel.reload()
             }
         }
     }
 
-    // MARK: - Requête filtrée
+    // MARK: - Boutons de filtrage
 
-    private func applyFilters() {
-        viewModel.filter = HistoryFilter(
-            medicineID: medicineID.isEmpty
-                ? nil
-                : medicineID,
-            userEmail: userEmail,
-            aisle: aisle,
-            day: selectedDay,
-            sort: sort
+    private func modeButton(
+        _ title: String,
+        icon: String,
+        value: AuditLogFilterViewModel.FilterMode
+    ) -> some View {
+
+        let active = filterModel.mode == value
+
+        return Button {
+            guard filterModel.mode != value else {
+                return
+            }
+
+            filterModel.selectMode(value)
+            applyFilter()
+
+        } label: {
+            Label(title, systemImage: icon)
+                .font(.subheadline.weight(.semibold))
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: 44
+                )
+                .foregroundStyle(
+                    active
+                        ? Color.white
+                        : MediStockTheme.primary
+                )
+                .background {
+                    if active {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(MediStockTheme.primary)
+                    }
+                }
+                .contentShape(
+                    RoundedRectangle(cornerRadius: 12)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(
+            active ? [.isSelected] : []
         )
+    }
+
+    // MARK: - Filtre par date
+
+    private var dateFilter: some View {
+        VStack(
+            alignment: .leading,
+            spacing: 12
+        ) {
+
+            Label(
+                "Choisir une date",
+                systemImage: "calendar"
+            )
+            .font(.subheadline.weight(.semibold))
+
+            Button {
+                dayToChoose = filterModel.selectedDay ?? Date()
+                showingDatePicker = true
+
+            } label: {
+                HStack {
+                    Text(
+                        filterModel.selectedDay?.formatted(
+                            date: .long,
+                            time: .omitted
+                        ) ?? "Choisir une date"
+                    )
+
+                    Spacer()
+
+                    Image(systemName: "calendar")
+                }
+                .foregroundStyle(.primary)
+                .padding(13)
+                .background(
+                    Color(
+                        uiColor:
+                            .secondarySystemGroupedBackground
+                    ),
+                    in: RoundedRectangle(cornerRadius: 12)
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(
+                "history.selectDate"
+            )
+
+            Button("Toutes les dates") {
+                filterModel.selectDay(nil)
+                applyFilter()
+            }
+            .font(.subheadline.weight(.medium))
+            .disabled(filterModel.selectedDay == nil)
+            .accessibilityIdentifier(
+                "history.allDates"
+            )
+        }
+        .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+        )
+        .padding(16)
+        .background(
+            MediStockTheme.primary.opacity(0.08),
+            in: RoundedRectangle(cornerRadius: 18)
+        )
+    }
+
+    // MARK: - Filtre par médicament
+
+    private var medicineFilter: some View {
+        VStack(
+            alignment: .leading,
+            spacing: 12
+        ) {
+
+            HStack {
+                Label(
+                    "Médicament",
+                    systemImage: "pills"
+                )
+                .font(.subheadline.weight(.semibold))
+
+                Spacer()
+
+                Text("A–Z")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(
+                        MediStockTheme.primary
+                    )
+            }
+
+            Menu {
+                Button("Tous les médicaments") {
+                    selectMedicine(nil)
+                }
+
+                ForEach(medicines) { medicine in
+                    Button(medicine.name) {
+                        selectMedicine(medicine)
+                    }
+                }
+
+                if choicesModel.hasMore
+                    && !choicesModel.isLoading {
+
+                    Divider()
+
+                    Button("Charger d’autres médicaments") {
+                        Task {
+                            await choicesModel.loadMore()
+                        }
+                    }
+                }
+
+            } label: {
+                HStack {
+                    Text(
+                        filterModel.selectedMedicineLabel(
+                            from: choicesModel.items
+                        )
+                    )
+                    .lineLimit(1)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                }
+                .foregroundStyle(.primary)
+                .padding(13)
+                .background(
+                    Color(
+                        uiColor:
+                            .secondarySystemGroupedBackground
+                    ),
+                    in: RoundedRectangle(cornerRadius: 12)
+                )
+            }
+            .accessibilityIdentifier(
+                "history.selectMedicine"
+            )
+
+            if choicesModel.isLoading {
+                ProgressView(
+                    "Chargement des médicaments…"
+                )
+            }
+
+            if let error = choicesModel.errorMessage {
+                ErrorBanner(message: error)
+
+                Button("Réessayer") {
+                    Task {
+                        await choicesModel.reload()
+                    }
+                }
+            }
+        }
+        .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+        )
+        .padding(16)
+        .background(
+            MediStockTheme.primary.opacity(0.08),
+            in: RoundedRectangle(cornerRadius: 18)
+        )
+    }
+
+    // MARK: - Calendrier
+
+    private var datePickerSheet: some View {
+        NavigationStack {
+            DatePicker(
+                "Choisir une date",
+                selection: $dayToChoose,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .padding()
+            .navigationTitle("Choisir une date")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+
+                ToolbarItem(
+                    placement: .cancellationAction
+                ) {
+                    Button("Annuler") {
+                        showingDatePicker = false
+                    }
+                }
+
+                ToolbarItem(
+                    placement: .confirmationAction
+                ) {
+                    Button("Afficher") {
+                        filterModel.selectDay(dayToChoose)
+                        showingDatePicker = false
+                        applyFilter()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    // MARK: - Sélection du médicament
+
+    private func selectMedicine(
+        _ medicine: AuditLogFilterViewModel.MedicineChoice?
+    ) {
+        filterModel.selectMedicine(medicine)
+        applyFilter()
+    }
+
+    // MARK: - Application du filtre et du tri
+
+    private func applyFilter() {
+        let filter = filterModel.historyFilter
+
+        guard filter != viewModel.filter else {
+            return
+        }
+
+        viewModel.filter = filter
 
         Task {
             await viewModel.reload()
@@ -363,98 +425,3 @@ struct AuditLogView: View {
     }
 }
 
-// MARK: - Affichage partagé de l'historique
-
-@MainActor
-struct HistoryContent: View {
-
-    @ObservedObject var viewModel: HistoryViewModel
-
-    @Environment(\.colorScheme)
-    private var colorScheme
-
-    var body: some View {
-
-        if let error = viewModel.errorMessage {
-            ErrorBanner(message: error)
-
-            Button("Réessayer") {
-                Task {
-                    await viewModel.reload()
-                }
-            }
-        }
-
-        ForEach(viewModel.items) { entry in
-            VStack(alignment: .leading, spacing: 6) {
-
-                Text(entry.title)
-                    .font(.headline)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
-
-                Text(entry.details)
-                    .font(.body)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
-
-                Label(
-                    entry.userEmail,
-                    systemImage: "person"
-                )
-                .font(.subheadline)
-                .fixedSize(
-                    horizontal: false,
-                    vertical: true
-                )
-
-                Text(
-                    entry.timestamp.formatted(
-                        date: .abbreviated,
-                        time: .standard
-                    )
-                )
-                .font(.footnote)
-                .foregroundStyle(
-                    MediStockTheme.supportingText(
-                        for: colorScheme
-                    )
-                )
-                .fixedSize(
-                    horizontal: false,
-                    vertical: true
-                )
-            }
-            .padding(.vertical, 6)
-            .accessibilityElement(children: .combine)
-        }
-
-        if viewModel.isLoading {
-            ProgressView("Chargement de l'historique…")
-
-        } else if viewModel.items.isEmpty,
-                  viewModel.errorMessage == nil {
-
-            Text(
-                viewModel.filter.medicineID != nil
-                || !viewModel.filter.userEmail.isEmpty
-                || !viewModel.filter.aisle.isEmpty
-                || viewModel.filter.day != nil
-                    ? "Aucune modification ne correspond aux filtres sélectionnés."
-                    : "Aucune opération enregistrée."
-            )
-        }
-
-        if viewModel.hasMore && !viewModel.isLoading {
-            Button("Charger les opérations précédentes") {
-                Task {
-                    await viewModel.loadMore()
-                }
-            }
-        }
-    }
-}

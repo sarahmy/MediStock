@@ -25,6 +25,8 @@
 		65A1FA8B3097201D00EB8832 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA8A3097201D00EB8832 /* FirebaseFirestore */; };
 		65A1FA8D3097201D00EB8832 /* FirebaseFirestoreCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 65A1FA8C3097201D00EB8832 /* FirebaseFirestoreCombine-Community */; };
 		65A1FA8F3097251000EB8832 /* MediStockCoverageSupplementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FA8E3097251000EB8832 /* MediStockCoverageSupplementTests.swift */; };
+		65A1FB0A30B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FB0930B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift */; };
+		65A1FB0C30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1FB0B30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +62,8 @@
 		65A1FA7B3097195200EB8832 /* MediStockNewFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockNewFeaturesTests.swift; sourceTree = "<group>"; };
 		65A1FA8E3097251000EB8832 /* MediStockCoverageSupplementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockCoverageSupplementTests.swift; sourceTree = "<group>"; };
 		65A1FAAE309744FE00EB8832 /* MediStock.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MediStock.xctestplan; sourceTree = "<group>"; };
+		65A1FB0930B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockHistoryViewModelTests.swift; sourceTree = "<group>"; };
+		65A1FB0B30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediStockSessionStoreSafetyTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -152,6 +156,8 @@
 				53E0D8A72C06084900DE1134 /* MediStockTests.swift */,
 				65A1FA7B3097195200EB8832 /* MediStockNewFeaturesTests.swift */,
 				65A1FA8E3097251000EB8832 /* MediStockCoverageSupplementTests.swift */,
+				65A1FB0930B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift */,
+				65A1FB0B30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift */,
 			);
 			path = MediStockTests;
 			sourceTree = "<group>";
@@ -333,6 +339,8 @@
 				65A1FA8F3097251000EB8832 /* MediStockCoverageSupplementTests.swift in Sources */,
 				53E0D8A82C06084900DE1134 /* MediStockTests.swift in Sources */,
 				65A1FA7C3097195200EB8832 /* MediStockNewFeaturesTests.swift in Sources */,
+				65A1FB0C30B3D25300EB8832 /* MediStockSessionStoreSafetyTests.swift in Sources */,
+				65A1FB0A30B3C78F00EB8832 /* MediStockHistoryViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

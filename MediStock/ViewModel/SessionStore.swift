@@ -1,3 +1,9 @@
+
+//
+//  SessionStore.swift
+//  MediStock
+//
+
 import Foundation
 import Combine
 import FirebaseAuth
@@ -20,8 +26,7 @@ final class SessionStore: ObservableObject {
     private var authHandle: AuthStateDidChangeListenerHandle?
     private var accessListener: ListenerRegistration?
 
-    // Empêche une ancienne réponse de modifier
-    // l'état d'une nouvelle session.
+    // Empêche une ancienne réponse de modifier une nouvelle session.
     private var accessGeneration = 0
 
     // MARK: - Observer la connexion
@@ -35,7 +40,6 @@ final class SessionStore: ObservableObject {
 
         authHandle = Auth.auth().addStateDidChangeListener {
             [weak self] _, _ in
-
             Task { @MainActor [weak self] in
                 self?.updateSession()
             }
@@ -83,38 +87,28 @@ final class SessionStore: ObservableObject {
             .addSnapshotListener(
                 includeMetadataChanges: true
             ) { [weak self] snapshot, error in
-
                 Task { @MainActor [weak self] in
-                    guard
-                        let self,
-                        self.accessGeneration == generation,
-                        self.user?.uid == uid,
-                        Auth.auth().currentUser?.uid == uid
-                    else {
+                    guard let self else {
                         return
                     }
 
-                    guard error == nil, let snapshot else {
-                        self.accessStatus = .unavailable
+                    guard SessionStoreRules.acceptsAccessCallback(
+                        expectedGeneration: generation,
+                        currentGeneration: self.accessGeneration,
+                        expectedUID: uid,
+                        sessionUID: self.user?.uid,
+                        authenticatedUID: Auth.auth().currentUser?.uid
+                    ) else {
                         return
                     }
 
-                    // Attend une autorisation confirmée par le serveur.
-                    // Une ancienne valeur locale ne suffit pas.
-                    guard
-                        !snapshot.metadata.isFromCache,
-                        !snapshot.metadata.hasPendingWrites
-                    else {
-                        self.accessStatus = .checking
-                        return
-                    }
-
-                    let enabled =
-                        snapshot.data()?["enabled"] as? Bool == true
-
-                    self.accessStatus = enabled
-                        ? .allowed
-                        : .denied
+                    self.accessStatus = SessionStoreRules.authorizationStatus(
+                        hasError: error != nil,
+                        hasSnapshot: snapshot != nil,
+                        isFromCache: snapshot?.metadata.isFromCache ?? false,
+                        hasPendingWrites: snapshot?.metadata.hasPendingWrites ?? false,
+                        enabled: snapshot?.data()?["enabled"] as? Bool == true
+                    )
                 }
             }
     }
@@ -131,15 +125,10 @@ final class SessionStore: ObservableObject {
         email: String,
         password: String
     ) async throws {
-        let email = email.trimmingCharacters(
-            in: .whitespacesAndNewlines
+        let email = try SessionStoreRules.signInEmail(
+            email,
+            password: password
         )
-
-        guard !email.isEmpty, !password.isEmpty else {
-            throw StockError.message(
-                "Renseigne l'email et le mot de passe."
-            )
-        }
 
         do {
             _ = try await Auth.auth().signIn(
@@ -163,27 +152,11 @@ final class SessionStore: ObservableObject {
         password: String,
         confirmation: String
     ) async throws {
-        let email = email.trimmingCharacters(
-            in: .whitespacesAndNewlines
+        let email = try SessionStoreRules.signUpEmail(
+            email,
+            password: password,
+            confirmation: confirmation
         )
-
-        guard email.contains("@"), !email.contains(" ") else {
-            throw StockError.message(
-                "Vérifie le format de l'adresse email."
-            )
-        }
-
-        guard password.count >= 6 else {
-            throw StockError.message(
-                "Le mot de passe doit contenir au moins 6 caractères."
-            )
-        }
-
-        guard password == confirmation else {
-            throw StockError.message(
-                "Les mots de passe ne correspondent pas."
-            )
-        }
 
         do {
             _ = try await Auth.auth().createUser(
@@ -204,15 +177,7 @@ final class SessionStore: ObservableObject {
     // MARK: - Mot de passe oublié
 
     func resetPassword(email: String) async throws {
-        let email = email.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-
-        guard email.contains("@") else {
-            throw StockError.message(
-                "Renseigne ton adresse email."
-            )
-        }
+        let email = try SessionStoreRules.resetPasswordEmail(email)
 
         do {
             try await Auth.auth().sendPasswordReset(
